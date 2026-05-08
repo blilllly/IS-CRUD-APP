@@ -12,6 +12,8 @@ export interface Movie {
   description: string;
   status: MovieStatus;
   createdAt: string;
+  releaseDate?: string;
+  revenue?: number;
 }
 
 export interface MovieFormData {
@@ -19,4 +21,6 @@ export interface MovieFormData {
   category: string;
   description: string;
   status: MovieStatus;
+  releaseDate?: string | null;
+  revenue?: number | null;
 }

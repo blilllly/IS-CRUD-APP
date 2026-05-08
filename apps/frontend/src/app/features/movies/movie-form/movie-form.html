@@ -41,6 +41,20 @@
         </select>
       </div>
 
+      <div class="field-row">
+        <div class="field">
+          <label for="releaseDate">Fecha de estreno</label>
+          <input id="releaseDate" type="date" formControlName="releaseDate" />
+        </div>
+        <div class="field">
+          <label for="revenue">Recaudación (USD)</label>
+          <input id="revenue" type="number" formControlName="revenue" placeholder="0" min="0" step="1" />
+          @if (form.controls.revenue.invalid && form.controls.revenue.touched) {
+            <p class="error-msg">Debe ser un número positivo</p>
+          }
+        </div>
+      </div>
+
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" (click)="cancelled.emit()">Cancelar</button>
         <button type="submit" class="btn btn-primary">

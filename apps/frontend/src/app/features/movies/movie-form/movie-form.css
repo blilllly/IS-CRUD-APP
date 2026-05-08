@@ -69,6 +69,16 @@ form {
   background: var(--card);
 }
 
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 420px) {
+  .field-row { grid-template-columns: 1fr; }
+}
+
 .modal-actions {
   display: flex;
   gap: 10px;

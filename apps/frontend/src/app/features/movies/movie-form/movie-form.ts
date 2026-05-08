@@ -20,14 +20,23 @@ export class MovieForm {
     name:        new FormControl('', [Validators.required, Validators.maxLength(200)]),
     category:    new FormControl('', [Validators.required, Validators.maxLength(100)]),
     description: new FormControl('', [Validators.required, Validators.maxLength(1000)]),
-    status:      new FormControl<MovieStatus>(MovieStatus.Disponible, Validators.required)
+    status:      new FormControl<MovieStatus>(MovieStatus.Disponible, Validators.required),
+    releaseDate: new FormControl<string | null>(null),
+    revenue:     new FormControl<number | null>(null, [Validators.min(0)])
   });
 
   constructor() {
     effect(() => {
       const m = this.movie();
       if (m) {
-        this.form.patchValue({ name: m.name, category: m.category, description: m.description, status: m.status });
+        this.form.patchValue({
+          name: m.name,
+          category: m.category,
+          description: m.description,
+          status: m.status,
+          releaseDate: m.releaseDate ? m.releaseDate.split('T')[0] : null,
+          revenue: m.revenue ?? null
+        });
       } else {
         this.form.reset({ status: MovieStatus.Disponible });
       }
@@ -48,6 +57,14 @@ export class MovieForm {
 
   submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.saved.emit(this.form.value as MovieFormData);
+    const val = this.form.value;
+    this.saved.emit({
+      name: val.name!,
+      category: val.category!,
+      description: val.description!,
+      status: val.status!,
+      releaseDate: val.releaseDate || null,
+      revenue: val.revenue != null && val.revenue !== ('' as any) ? Number(val.revenue) : null
+    });
   }
 }

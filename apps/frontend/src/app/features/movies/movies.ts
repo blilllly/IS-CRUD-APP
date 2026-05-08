@@ -1,5 +1,6 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { DatePipe, CurrencyPipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { MovieService } from '../../core/services/movie.service';
 import { Movie, MovieFormData, MovieStatus } from '../../core/models/movie.model';
@@ -9,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-movies',
   standalone: true,
-  imports: [MovieForm, FormsModule],
+  imports: [MovieForm, FormsModule, DatePipe, CurrencyPipe],
   templateUrl: './movies.html',
   styleUrl: './movies.css'
 })
@@ -23,6 +24,8 @@ export class Movies implements OnInit {
   search = signal('');
   showModal = signal(false);
   editingMovie = signal<Movie | null>(null);
+  currentPage = signal(1);
+  readonly pageSize = 6;
 
   filtered = computed(() => {
     const q = this.search().toLowerCase();
@@ -34,6 +37,28 @@ export class Movies implements OnInit {
         )
       : this.movies();
   });
+
+  totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize) || 1);
+
+  paginated = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.filtered().slice(start, start + this.pageSize);
+  });
+
+  visiblePages = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+    const start = Math.max(1, Math.min(current - 2, total - 4));
+    return Array.from({ length: 5 }, (_, i) => start + i);
+  });
+
+  constructor() {
+    effect(() => {
+      const total = this.totalPages();
+      if (this.currentPage() > total) this.currentPage.set(total);
+    });
+  }
 
   ngOnInit() { this.load(); }
 
@@ -65,7 +90,6 @@ export class Movies implements OnInit {
     const op = editing
       ? this.movieSvc.update(editing.id, data)
       : this.movieSvc.create(data);
-
     op.subscribe({ next: () => { this.closeModal(); this.load(); } });
   }
 
@@ -78,6 +102,15 @@ export class Movies implements OnInit {
     this.auth.logout();
     this.router.navigate(['/login']);
   }
+
+  onSearchChange(val: string) {
+    this.search.set(val);
+    this.currentPage.set(1);
+  }
+
+  goToPage(n: number) { this.currentPage.set(n); }
+  prevPage() { if (this.currentPage() > 1) this.currentPage.update(p => p - 1); }
+  nextPage() { if (this.currentPage() < this.totalPages()) this.currentPage.update(p => p + 1); }
 
   statusBadge(status: string): string {
     const map: Record<string, string> = {
@@ -98,6 +131,4 @@ export class Movies implements OnInit {
     };
     return map[status] ?? status;
   }
-
-  onSearchChange(val: string) { this.search.set(val); }
 }

@@ -56,17 +56,21 @@
               <th>Categoría</th>
               <th>Descripción</th>
               <th>Estado</th>
+              <th>Estreno</th>
+              <th>Recaudación</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (movie of filtered(); track movie.id; let i = $index) {
+            @for (movie of paginated(); track movie.id; let i = $index) {
               <tr>
-                <td class="num">{{ i + 1 }}</td>
+                <td class="num">{{ (currentPage() - 1) * pageSize + i + 1 }}</td>
                 <td class="name">{{ movie.name }}</td>
                 <td class="category">{{ movie.category }}</td>
                 <td class="description">{{ movie.description }}</td>
                 <td><span [class]="statusBadge(movie.status)">{{ statusLabel(movie.status) }}</span></td>
+                <td class="date">{{ movie.releaseDate ? (movie.releaseDate | date:'dd/MM/yyyy') : '—' }}</td>
+                <td class="revenue">{{ movie.revenue != null ? (movie.revenue | currency:'USD':'symbol':'1.0-0') : '—' }}</td>
                 <td class="actions">
                   <button class="btn-icon edit" (click)="openEdit(movie)" title="Editar">
                     <span class="iconify" data-icon="mdi:pencil"></span>
@@ -80,6 +84,32 @@
           </tbody>
         </table>
       </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="page-btn" (click)="prevPage()" [disabled]="currentPage() === 1" title="Anterior">
+            <span class="iconify" data-icon="mdi:chevron-left"></span>
+          </button>
+          @if (visiblePages()[0] > 1) {
+            <button class="page-btn" (click)="goToPage(1)">1</button>
+            @if (visiblePages()[0] > 2) {
+              <span class="page-ellipsis">…</span>
+            }
+          }
+          @for (p of visiblePages(); track p) {
+            <button class="page-btn" [class.active]="p === currentPage()" (click)="goToPage(p)">{{ p }}</button>
+          }
+          @if (visiblePages()[visiblePages().length - 1] < totalPages()) {
+            @if (visiblePages()[visiblePages().length - 1] < totalPages() - 1) {
+              <span class="page-ellipsis">…</span>
+            }
+            <button class="page-btn" (click)="goToPage(totalPages())">{{ totalPages() }}</button>
+          }
+          <button class="page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()" title="Siguiente">
+            <span class="iconify" data-icon="mdi:chevron-right"></span>
+          </button>
+        </div>
+      }
     }
   </main>
 </div>
