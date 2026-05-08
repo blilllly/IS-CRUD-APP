@@ -30,6 +30,16 @@
       <span class="count">{{ filtered().length }} película(s)</span>
     </div>
 
+    @if (errorMsg()) {
+      <div class="error-banner" role="alert">
+        <span class="iconify" data-icon="mdi:alert-circle-outline"></span>
+        {{ errorMsg() }}
+        <button class="error-close" (click)="clearError()" aria-label="Cerrar">
+          <span class="iconify" data-icon="mdi:close"></span>
+        </button>
+      </div>
+    }
+
     @if (loading()) {
       <div class="empty-state">
         <span class="iconify spin-icon" data-icon="mdi:loading"></span>

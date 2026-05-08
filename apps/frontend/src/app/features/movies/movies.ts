@@ -21,6 +21,7 @@ export class Movies implements OnInit {
 
   movies = signal<Movie[]>([]);
   loading = signal(true);
+  errorMsg = signal('');
   search = signal('');
   showModal = signal(false);
   editingMovie = signal<Movie | null>(null);
@@ -66,8 +67,16 @@ export class Movies implements OnInit {
     this.loading.set(true);
     this.movieSvc.getAll().subscribe({
       next: data => { this.movies.set(data); this.loading.set(false); },
-      error: () => this.loading.set(false)
+      error: () => { this.loading.set(false); this.showError('Error al cargar las películas. Intente de nuevo.'); }
     });
+  }
+
+  showError(msg: string) {
+    this.errorMsg.set(msg);
+  }
+
+  clearError() {
+    this.errorMsg.set('');
   }
 
   openCreate() {
@@ -90,12 +99,18 @@ export class Movies implements OnInit {
     const op = editing
       ? this.movieSvc.update(editing.id, data)
       : this.movieSvc.create(data);
-    op.subscribe({ next: () => { this.closeModal(); this.load(); } });
+    op.subscribe({
+      next: () => { this.closeModal(); this.load(); },
+      error: () => this.showError('Error al guardar la película. Intente de nuevo.')
+    });
   }
 
   delete(movie: Movie) {
     if (!confirm(`¿Eliminar "${movie.name}"?`)) return;
-    this.movieSvc.delete(movie.id).subscribe({ next: () => this.load() });
+    this.movieSvc.delete(movie.id).subscribe({
+      next: () => this.load(),
+      error: () => this.showError('Error al eliminar la película. Intente de nuevo.')
+    });
   }
 
   logout() {
