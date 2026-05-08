@@ -44,6 +44,8 @@ form {
 .field input,
 .field select,
 .field textarea {
+  width: 100%;
+  box-sizing: border-box;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -73,6 +75,10 @@ form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+.field-row .field {
+  min-width: 0;
 }
 
 @media (max-width: 420px) {
