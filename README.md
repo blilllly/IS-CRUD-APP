@@ -20,7 +20,9 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 - **Lazy loading** — las rutas cargan sus componentes bajo demanda con `loadComponent`
 - **HTTP Interceptor funcional** — inyecta automáticamente el JWT en cada request autenticado
 - **Auth Guard funcional** — protege la ruta `/movies` redirigiendo a `/login` si no hay token
-- **Reactive Forms** — formularios con validación para el CRUD de películas
+- **Reactive Forms** — formularios con validación para el CRUD de películas, incluyendo validación numérica para el campo de recaudación
+- **DatePipe y CurrencyPipe** — pipes nativos de Angular para formatear fechas (`dd/MM/yyyy`) y recaudación (`USD`) directamente en la plantilla, sin librerías externas
+- **Paginación con signals** — la tabla muestra 6 películas por página; el buscador filtra sobre el total y la paginación se aplica sobre el resultado filtrado
 - **CSS artesanal** — sin librerías de estilos externas, dark theme completo con variables CSS
 - **Iconify** — iconos vía script CDN con etiquetas HTML (`<span class="iconify">`)
 
@@ -36,6 +38,21 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 - **Docker Compose** — orquesta backend y frontend en dos contenedores
 - **nginx** — sirve el build de Angular y hace proxy reverso de `/api/*` hacia el backend, eliminando CORS en el flujo web
 - **Volume Docker** — persiste el archivo SQLite entre reinicios del contenedor
+
+---
+
+## Funcionalidades
+
+- Login con JWT (usuario único hardcodeado)
+- CRUD completo de películas con los campos:
+  - **Nombre** — texto requerido
+  - **Categoría** — texto requerido
+  - **Descripción** — texto requerido
+  - **Estado** — enum con 4 valores: Disponible, No Disponible, Próximamente, Archivada
+  - **Fecha de estreno** — date picker opcional, formateado con `DatePipe`
+  - **Recaudación (USD)** — número opcional con validación (debe ser positivo), formateado con `CurrencyPipe`
+- Buscador en tiempo real por nombre, categoría o descripción (busca sobre el total)
+- Paginación de 6 películas por página con navegación inteligente (ventana deslizante + elipsis)
 
 ---
 
@@ -72,6 +89,8 @@ Para detener:
 ```bash
 docker compose down
 ```
+
+> **Nota:** si se realizan cambios en el esquema de la base de datos y se requiere recrearla, usar `docker compose down -v` en lugar de `docker compose down`. El flag `-v` elimina el volumen con el archivo SQLite, permitiendo que el backend lo recree con el esquema actualizado al volver a iniciar.
 
 ---
 
