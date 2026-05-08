@@ -25,7 +25,9 @@ public class MovieService(IMovieRepository repository) : IMovieService
             Name = dto.Name,
             Category = dto.Category,
             Description = dto.Description,
-            Status = dto.Status
+            Status = dto.Status,
+            ReleaseDate = dto.ReleaseDate,
+            Revenue = dto.Revenue
         };
         var created = await repository.CreateAsync(movie);
         return ToDto(created);
@@ -38,7 +40,9 @@ public class MovieService(IMovieRepository repository) : IMovieService
             Name = dto.Name,
             Category = dto.Category,
             Description = dto.Description,
-            Status = dto.Status
+            Status = dto.Status,
+            ReleaseDate = dto.ReleaseDate,
+            Revenue = dto.Revenue
         };
         var result = await repository.UpdateAsync(id, updated);
         return result is null ? null : ToDto(result);
@@ -48,5 +52,5 @@ public class MovieService(IMovieRepository repository) : IMovieService
         await repository.DeleteAsync(id);
 
     private static MovieDto ToDto(Movie m) =>
-        new(m.Id, m.Name, m.Category, m.Description, m.Status, m.CreatedAt);
+        new(m.Id, m.Name, m.Category, m.Description, m.Status, m.CreatedAt, m.ReleaseDate, m.Revenue);
 }
