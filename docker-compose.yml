@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: ./apps/backend
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    volumes:
+      - db-data:/app/data
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./apps/frontend
+    ports:
+      - "80:80"
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+
+networks:
+  app-network:
