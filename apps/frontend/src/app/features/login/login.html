@@ -39,13 +39,9 @@
       }
 
       <button type="submit" class="btn btn-primary submit-btn" [disabled]="loading()">
-        @if (loading()) {
-          <span class="iconify" data-icon="mdi:loading"></span>
-          Ingresando...
-        } @else {
-          <span class="iconify" data-icon="mdi:login"></span>
-          Ingresar
-        }
+        <span class="iconify spin-icon" data-icon="mdi:loading" [style.display]="loading() ? 'inline-block' : 'none'"></span>
+        <span class="iconify" data-icon="mdi:login" [style.display]="loading() ? 'none' : 'inline-block'"></span>
+        {{ loading() ? 'Ingresando...' : 'Ingresar' }}
       </button>
     </form>
   </div>
