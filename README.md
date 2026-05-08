@@ -156,6 +156,67 @@ npx cap open android
 
 ---
 
+## Testing
+
+### Backend — xUnit + Moq
+
+Tests unitarios sobre la capa de servicio (`MovieService`), aislando el repositorio con mocks para no depender de la base de datos.
+
+```bash
+dotnet test apps/backend.Tests
+```
+
+| Test                                                | Qué valida                                                   |
+| --------------------------------------------------- | ------------------------------------------------------------ |
+| `GetAllAsync_RetornaTodosLosDtosMapeados`           | Los datos del repositorio se mapean correctamente a DTOs     |
+| `CreateAsync_LlamaAlRepositorioYRetornaDto`         | Se invoca el repositorio una vez y se retorna el DTO creado  |
+| `UpdateAsync_CuandoNoExisteLaPelicula_RetornaNull`  | Retorna `null` cuando el repositorio no encuentra la entidad |
+| `DeleteAsync_CuandoExisteLaPelicula_RetornaTrue`    | Retorna `true` al eliminar una entidad existente             |
+| `DeleteAsync_CuandoNoExisteLaPelicula_RetornaFalse` | Retorna `false` al intentar eliminar una entidad inexistente |
+
+### Frontend — Vitest (Angular 21)
+
+Tests unitarios sobre los servicios usando `TestBed` con `HttpTestingController` para interceptar y verificar llamadas HTTP sin realizar requests reales.
+
+```bash
+cd apps/frontend
+npm test
+```
+
+**AuthService** (5 tests)
+
+| Test                   | Qué valida                                            |
+| ---------------------- | ----------------------------------------------------- |
+| Creación               | El servicio se instancia correctamente                |
+| `getToken` sin sesión  | Retorna `null` cuando no hay token almacenado         |
+| `isLoggedIn` sin token | Retorna `false` cuando localStorage está vacío        |
+| `isLoggedIn` con token | Retorna `true` cuando existe un token en localStorage |
+| `logout`               | Elimina el token y `isLoggedIn` pasa a `false`        |
+
+**MovieService** (5 tests)
+
+| Test     | Qué valida                                                 |
+| -------- | ---------------------------------------------------------- |
+| Creación | El servicio se instancia correctamente                     |
+| `getAll` | Realiza `GET /api/movies` y retorna la lista deserializada |
+| `create` | Realiza `POST /api/movies` con el body correcto            |
+| `update` | Realiza `PUT /api/movies/:id` con los datos actualizados   |
+| `delete` | Realiza `DELETE /api/movies/:id`                           |
+
+### Android — JUnit
+
+Tests unitarios sobre lógica de paginación y búsqueda en la capa nativa. Se ejecutan desde Android Studio haciendo clic derecho sobre `ExampleUnitTest.java` → **Run tests**.
+
+| Test                                        | Qué valida                                             |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `paginacion_totalPaginas_calculaCorrecto`   | 14 películas con página de 6 → 3 páginas totales       |
+| `paginacion_offsetPrimeraPagina_esZero`     | El offset de la página 1 es 0                          |
+| `paginacion_offsetSegundaPagina_esSeis`     | El offset de la página 2 es 6                          |
+| `busqueda_nombreContieneQuery_devuelveTrue` | La búsqueda es case-insensitive y encuentra subcadenas |
+| `busqueda_queryVacio_siempreCoincide`       | Un query vacío no filtra resultados                    |
+
+---
+
 ## Estructura del proyecto
 
 ```
