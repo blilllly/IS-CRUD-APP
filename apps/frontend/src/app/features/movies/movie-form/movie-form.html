@@ -1,0 +1,53 @@
+<div class="overlay" (click)="cancelled.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditing ? 'Editar Película' : 'Nueva Película' }}</h2>
+      <button class="btn-icon" (click)="cancelled.emit()" title="Cerrar">
+        <span class="iconify" data-icon="mdi:close"></span>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label for="name">Nombre</label>
+        <input id="name" type="text" formControlName="name" placeholder="Nombre de la película" />
+        @if (form.controls.name.invalid && form.controls.name.touched) {
+          <p class="error-msg">El nombre es requerido (máx. 200 caracteres)</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="category">Categoría</label>
+        <input id="category" type="text" formControlName="category" placeholder="Acción, Drama, Comedia..." />
+        @if (form.controls.category.invalid && form.controls.category.touched) {
+          <p class="error-msg">La categoría es requerida</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="description">Descripción</label>
+        <textarea id="description" formControlName="description" placeholder="Descripción de la película..." rows="3"></textarea>
+        @if (form.controls.description.invalid && form.controls.description.touched) {
+          <p class="error-msg">La descripción es requerida</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="status">Estado</label>
+        <select id="status" formControlName="status">
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ statusLabel(s) }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelled.emit()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">
+          <span class="iconify" data-icon="mdi:content-save"></span>
+          {{ isEditing ? 'Guardar cambios' : 'Crear película' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

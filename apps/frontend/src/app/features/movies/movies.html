@@ -1,0 +1,93 @@
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="iconify" data-icon="mdi:movie-open"></span>
+      <h1>CineApp</h1>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-primary" (click)="openCreate()">
+        <span class="iconify" data-icon="mdi:plus"></span>
+        Agregar película
+      </button>
+      <button class="btn btn-ghost" (click)="logout()" title="Cerrar sesión">
+        <span class="iconify" data-icon="mdi:logout"></span>
+        Salir
+      </button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="iconify" data-icon="mdi:magnify"></span>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, categoría..."
+          [value]="search()"
+          (input)="onSearchChange($any($event.target).value)"
+        />
+      </div>
+      <span class="count">{{ filtered().length }} película(s)</span>
+    </div>
+
+    @if (loading()) {
+      <div class="empty-state">
+        <span class="iconify" data-icon="mdi:loading" style="animation: spin 0.8s linear infinite"></span>
+        <p>Cargando...</p>
+      </div>
+    } @else if (filtered().length === 0) {
+      <div class="empty-state">
+        <span class="iconify" data-icon="mdi:movie-off-outline"></span>
+        <p>No hay películas{{ search() ? ' con ese criterio' : ''}}</p>
+        @if (!search()) {
+          <button class="btn btn-primary" style="margin-top: 12px" (click)="openCreate()">
+            <span class="iconify" data-icon="mdi:plus"></span>
+            Agregar primera película
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (movie of filtered(); track movie.id; let i = $index) {
+              <tr>
+                <td class="num">{{ i + 1 }}</td>
+                <td class="name">{{ movie.name }}</td>
+                <td class="category">{{ movie.category }}</td>
+                <td class="description">{{ movie.description }}</td>
+                <td><span [class]="statusBadge(movie.status)">{{ statusLabel(movie.status) }}</span></td>
+                <td class="actions">
+                  <button class="btn-icon edit" (click)="openEdit(movie)" title="Editar">
+                    <span class="iconify" data-icon="mdi:pencil"></span>
+                  </button>
+                  <button class="btn-icon delete" (click)="delete(movie)" title="Eliminar">
+                    <span class="iconify" data-icon="mdi:trash-can-outline"></span>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </main>
+</div>
+
+@if (showModal()) {
+  <app-movie-form
+    [movie]="editingMovie()"
+    (saved)="onSave($event)"
+    (cancelled)="closeModal()"
+  />
+}

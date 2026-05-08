@@ -1,0 +1,52 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="logo">
+      <span class="iconify" data-icon="mdi:movie-open"></span>
+      <h1>CineApp</h1>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label for="username">Usuario</label>
+        <div class="input-wrap">
+          <span class="iconify" data-icon="mdi:account"></span>
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            placeholder="admin"
+            autocomplete="username"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <div class="input-wrap">
+          <span class="iconify" data-icon="mdi:lock"></span>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+        </div>
+      </div>
+
+      @if (error()) {
+        <p class="error-msg">{{ error() }}</p>
+      }
+
+      <button type="submit" class="btn btn-primary submit-btn" [disabled]="loading()">
+        @if (loading()) {
+          <span class="iconify" data-icon="mdi:loading"></span>
+          Ingresando...
+        } @else {
+          <span class="iconify" data-icon="mdi:login"></span>
+          Ingresar
+        }
+      </button>
+    </form>
+  </div>
+</div>
