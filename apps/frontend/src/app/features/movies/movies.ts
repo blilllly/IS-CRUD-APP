@@ -1,8 +1,10 @@
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { DatePipe, CurrencyPipe } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { MovieService } from '../../core/services/movie.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { Movie, MovieFormData, MovieStatus } from '../../core/models/movie.model';
 import { MovieForm } from './movie-form/movie-form';
 import { FormsModule } from '@angular/forms';
@@ -14,10 +16,12 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './movies.html',
   styleUrl: './movies.css'
 })
-export class Movies implements OnInit {
+export class Movies implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private movieSvc = inject(MovieService);
+  private realtime = inject(RealtimeService);
   private router = inject(Router);
+  private subs = new Subscription();
 
   movies = signal<Movie[]>([]);
   loading = signal(true);
@@ -61,7 +65,30 @@ export class Movies implements OnInit {
     });
   }
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.load();
+    this.realtime.connect();
+    this.subs.add(
+      this.realtime.movieCreated$.subscribe(movie =>
+        this.movies.update(list => [movie, ...list])
+      )
+    );
+    this.subs.add(
+      this.realtime.movieUpdated$.subscribe(movie =>
+        this.movies.update(list => list.map(m => (m.id === movie.id ? movie : m)))
+      )
+    );
+    this.subs.add(
+      this.realtime.movieDeleted$.subscribe(id =>
+        this.movies.update(list => list.filter(m => m.id !== id))
+      )
+    );
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+    this.realtime.disconnect();
+  }
 
   load() {
     this.loading.set(true);
@@ -100,7 +127,7 @@ export class Movies implements OnInit {
       ? this.movieSvc.update(editing.id, data)
       : this.movieSvc.create(data);
     op.subscribe({
-      next: () => { this.closeModal(); this.load(); },
+      next: () => this.closeModal(),
       error: () => this.showError('Error al guardar la película. Intente de nuevo.')
     });
   }
@@ -108,7 +135,6 @@ export class Movies implements OnInit {
   delete(movie: Movie) {
     if (!confirm(`¿Eliminar "${movie.name}"?`)) return;
     this.movieSvc.delete(movie.id).subscribe({
-      next: () => this.load(),
       error: () => this.showError('Error al eliminar la película. Intente de nuevo.')
     });
   }
