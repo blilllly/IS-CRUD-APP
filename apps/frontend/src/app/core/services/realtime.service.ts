@@ -18,8 +18,10 @@ export class RealtimeService {
     this.hub = new signalR.HubConnectionBuilder()
       .withUrl(environment.hubUrl, {
         accessTokenFactory: () => this.auth.getToken() ?? '',
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
       })
-      .configureLogging(signalR.LogLevel.Information)
+      .configureLogging(signalR.LogLevel.Warning)
       .withAutomaticReconnect()
       .build();
 
@@ -27,7 +29,7 @@ export class RealtimeService {
     this.hub.on('MovieUpdated', (movie: Movie) => this.movieUpdated$.next(movie));
     this.hub.on('MovieDeleted', (id: number) => this.movieDeleted$.next(id));
 
-    this.hub.start().catch(err => console.error('[SignalR] connection failed:', err));
+    this.hub.start().catch((err) => console.error('[SignalR] connection failed:', err));
   }
 
   disconnect(): void {
