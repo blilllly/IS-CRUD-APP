@@ -1,5 +1,6 @@
 using System.Text;
 using backend.Data;
+using backend.Hubs;
 using backend.Repositories;
 using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,9 +30,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
+        // SignalR WebSocket connections can't set headers, so the token arrives as a query param
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(token) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                    context.Token = token;
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IMovieService, MovieService>();
@@ -52,5 +66,6 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<MovieHub>("/hubs/movies");
 
 app.Run();
