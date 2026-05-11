@@ -11,6 +11,7 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 - **ASP.NET Core 10** — API REST con controllers
 - **Entity Framework Core 10 + SQLite** — persistencia de datos con migraciones automáticas al iniciar
 - **JWT (JSON Web Tokens)** — autenticación stateless. El token se genera al hacer login y se envía en cada request protegido vía header `Authorization: Bearer <token>`
+- **SignalR** — hub WebSocket en `/hubs/movies` que emite eventos `MovieCreated`, `MovieUpdated` y `MovieDeleted` a todos los clientes conectados tras cada mutación. El JWT se acepta vía query param `?access_token=` para el handshake WebSocket (los WebSockets no permiten headers personalizados). La serialización de SignalR está configurada con `JsonStringEnumConverter` para que los enums lleguen como strings
 - **CORS** — configurado para permitir cualquier origen, soportando tanto el frontend web como la app Android (Capacitor)
 - **Patrón Repository + Service Layer** — separación de responsabilidades en tres capas: Controllers (HTTP), Services (lógica de negocio) y Repositories (acceso a datos). Esto desacopla la lógica de negocio del ORM, facilitando pruebas y mantenimiento
 
@@ -23,6 +24,7 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 - **Reactive Forms** — formularios con validación para el CRUD de películas, incluyendo validación numérica para el campo de recaudación
 - **DatePipe y CurrencyPipe** — pipes nativos de Angular para formatear fechas (`dd/MM/yyyy`) y recaudación (`USD`) directamente en la plantilla, sin librerías externas
 - **Paginación con signals** — la tabla muestra 6 películas por página; el buscador filtra sobre el total y la paginación se aplica sobre el resultado filtrado
+- **Actualizaciones en tiempo real con SignalR** — `RealtimeService` mantiene una conexión WebSocket con el backend. Cuando cualquier cliente (web o Android) crea, edita o elimina una película, el signal `movies` se actualiza localmente de forma inmediata: inserta al inicio, reemplaza por id o filtra por id, sin recargar toda la lista vía HTTP. La conexión usa `skipNegotiation: true` para conectar directamente por WebSocket, evitando el paso de negotiate que el WebView de Android no maneja correctamente en conexiones cross-origin
 - **Manejo de errores** — banner dismissible que aparece cuando falla cualquier operación HTTP (carga, creación, edición o eliminación); el login muestra el mensaje de error inline en el formulario
 - **CSS artesanal** — sin librerías de estilos externas, dark theme completo con variables CSS
 - **Iconify** — iconos vía script CDN con etiquetas HTML (`<span class="iconify">`)
@@ -32,12 +34,12 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 - **Capacitor 8** — envuelve el build de Angular para generar la app Android nativa
 - **`androidScheme: http`** — permite tráfico HTTP hacia el backend (necesario en Android 9+)
 - **`cleartext: true`** — habilita `android:usesCleartextTraffic` en el manifest de Android
-- El build para Android usa `environment.android.ts`, que apunta al backend en `http://10.0.2.2:5000` (así el emulador Android alcanza el `localhost` del host)
+- El build para Android usa `environment.android.ts`, que apunta al backend en `http://10.0.2.2:5000` y al hub en `http://10.0.2.2:5000/hubs/movies` (así el emulador Android alcanza el `localhost` del host)
 
 ### Infraestructura — Docker
 
 - **Docker Compose** — orquesta backend y frontend en dos contenedores
-- **nginx** — sirve el build de Angular y hace proxy reverso de `/api/*` hacia el backend, eliminando CORS en el flujo web
+- **nginx** — sirve el build de Angular y hace proxy reverso de `/api/*` y `/hubs/*` hacia el backend; el bloque `/hubs/` incluye los headers `Upgrade` y `Connection` necesarios para el handshake WebSocket
 - **Volume Docker** — persiste el archivo SQLite entre reinicios del contenedor
 
 ---
@@ -45,6 +47,7 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 ## Funcionalidades
 
 - Login con JWT (usuario único hardcodeado)
+- **Sincronización en tiempo real** — cualquier cambio (crear, editar, eliminar) se refleja instantáneamente en todos los clientes conectados (web y Android) sin necesidad de recargar, gracias a SignalR WebSockets
 - CRUD completo de películas con los campos:
   - **Nombre** — texto requerido
   - **Categoría** — texto requerido
@@ -226,6 +229,7 @@ IS-Crud-App/
 ├── apps/
 │   ├── backend/
 │   │   ├── Controllers/       # AuthController, MoviesController
+│   │   ├── Hubs/              # MovieHub (SignalR)
 │   │   ├── Services/          # IMovieService, MovieService
 │   │   ├── Repositories/      # IMovieRepository, MovieRepository
 │   │   ├── Models/            # Movie, MovieStatus
@@ -235,9 +239,9 @@ IS-Crud-App/
 │   └── frontend/
 │       ├── src/
 │       │   ├── app/
-│       │   │   ├── core/      # Services, Guards, Interceptors, Models
+│       │   │   ├── core/      # Services (MovieService, AuthService, RealtimeService), Guards, Interceptors, Models
 │       │   │   └── features/  # Login, Movies (list + form modal)
-│       │   └── environments/  # environment.ts / .prod.ts / .android.ts
+│       │   └── environments/  # environment.ts / .prod.ts / .android.ts (cada uno con apiUrl y hubUrl)
 │       ├── android/           # Proyecto Android generado por Capacitor
 │       ├── nginx.conf
 │       ├── capacitor.config.ts
