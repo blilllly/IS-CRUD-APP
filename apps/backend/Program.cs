@@ -6,6 +6,7 @@ using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,8 @@ builder.Services.AddControllers()
     .AddJsonOptions(opts =>
         opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
+builder.Services.AddOpenApi();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -67,6 +70,8 @@ using (var scope = app.Services.CreateScope())
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapOpenApi();
+app.MapScalarApiReference();
 app.MapControllers();
 app.MapHub<MovieHub>("/hubs/movies");
 
