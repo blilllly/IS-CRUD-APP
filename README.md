@@ -31,10 +31,11 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 
 ### Mobile — Capacitor 8
 
-- **Capacitor 8** — envuelve el build de Angular para generar la app Android nativa
+- **Capacitor 8** — envuelve el build de Angular para generar apps nativas Android e iOS
 - **`androidScheme: http`** — permite tráfico HTTP hacia el backend (necesario en Android 9+)
 - **`cleartext: true`** — habilita `android:usesCleartextTraffic` en el manifest de Android
 - El build para Android usa `environment.android.ts`, que apunta al backend en `http://10.0.2.2:5000` y al hub en `http://10.0.2.2:5000/hubs/movies` (así el emulador Android alcanza el `localhost` del host)
+- **iOS** — el proyecto Xcode fue generado con `npx cap add ios` y sincronizado con `npx cap sync ios`. Se creó `environment.ios.ts` apuntando a `http://localhost:5000` (el simulador iOS alcanza el host directamente vía `localhost`, a diferencia de Android que usa `10.0.2.2`). El build usa `--configuration ios`. **No ha sido probado por falta de Mac/Xcode.** Requeriría además una excepción ATS en el `Info.plist` para permitir tráfico HTTP a `localhost`
 
 ### Infraestructura — Docker
 
@@ -128,6 +129,49 @@ npx cap open android
    - Presionar **Run ▶**
 
 > La app Android ya viene con el build sincronizado. Si se realizan cambios en el código fuente y se quiere regenerar el APK manualmente, ver la sección de desarrollo.
+
+---
+
+## Opción C — Probar como app iOS (Capacitor + Xcode)
+
+> **Nota:** esta opción requiere una Mac con Xcode instalado. El proyecto iOS fue generado y sincronizado, pero **no ha sido probado** por falta de entorno macOS.
+
+**Requisitos:**
+
+- Mac con Xcode instalado
+- CocoaPods (`sudo gem install cocoapods`)
+- Docker corriendo (el simulador iOS consume el backend; ajustar la URL del entorno según corresponda)
+
+### Pasos
+
+1. Levantar el backend con Docker:
+
+```bash
+docker compose up --build -d
+```
+
+2. Abrir el proyecto iOS en Xcode:
+
+```bash
+cd apps/frontend
+npx cap open ios
+```
+
+3. En Xcode:
+   - Esperar a que termine la resolución de dependencias de CocoaPods
+   - Seleccionar un simulador iOS en el dropdown de dispositivos
+   - Presionar **Run ▶**
+
+### Regenerar build para iOS tras cambios
+
+```bash
+cd apps/frontend
+npm run build -- --configuration ios
+npx cap sync ios
+npx cap open ios
+```
+
+> **ATS (App Transport Security):** iOS bloquea tráfico HTTP por defecto. Para desarrollo local, agregar en Xcode una excepción en `Info.plist` bajo `NSAppTransportSecurity` → `NSExceptionDomains` → `localhost` con `NSExceptionAllowsInsecureHTTPLoads: true`.
 
 ---
 
@@ -243,6 +287,7 @@ IS-Crud-App/
 │       │   │   └── features/  # Login, Movies (list + form modal)
 │       │   └── environments/  # environment.ts / .prod.ts / .android.ts (cada uno con apiUrl y hubUrl)
 │       ├── android/           # Proyecto Android generado por Capacitor
+│       ├── ios/               # Proyecto Xcode generado por Capacitor (no probado — requiere Mac)
 │       ├── nginx.conf
 │       ├── capacitor.config.ts
 │       └── Dockerfile
