@@ -14,6 +14,7 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 - **SignalR** — hub WebSocket en `/hubs/movies` que emite eventos `MovieCreated`, `MovieUpdated` y `MovieDeleted` a todos los clientes conectados tras cada mutación. El JWT se acepta vía query param `?access_token=` para el handshake WebSocket (los WebSockets no permiten headers personalizados). La serialización de SignalR está configurada con `JsonStringEnumConverter` para que los enums lleguen como strings
 - **CORS** — configurado para permitir cualquier origen, soportando tanto el frontend web como la app Android (Capacitor)
 - **Patrón Repository + Service Layer** — separación de responsabilidades en tres capas: Controllers (HTTP), Services (lógica de negocio) y Repositories (acceso a datos). Esto desacopla la lógica de negocio del ORM, facilitando pruebas y mantenimiento
+- **Scalar (OpenAPI UI)** — documentación interactiva de la API disponible en `/scalar/v1`. El documento OpenAPI se sirve en `/openapi/v1.json` mediante `Microsoft.AspNetCore.OpenApi` (ya incluido en .NET 10); `Scalar.AspNetCore` provee la interfaz visual. Permite explorar y probar todos los endpoints directamente desde el navegador
 
 ### Frontend — Angular 21
 
@@ -24,6 +25,8 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
 - **Reactive Forms** — formularios con validación para el CRUD de películas, incluyendo validación numérica para el campo de recaudación
 - **DatePipe y CurrencyPipe** — pipes nativos de Angular para formatear fechas (`dd/MM/yyyy`) y recaudación (`USD`) directamente en la plantilla, sin librerías externas
 - **Paginación con signals** — la tabla muestra 6 películas por página; el buscador filtra sobre el total y la paginación se aplica sobre el resultado filtrado
+- **Filtro por estado** — dropdown en la barra de herramientas que filtra la tabla por `Disponible`, `No Disponible`, `Próximamente` o `Archivada`; se combina con el buscador de texto y la paginación se reinicia al cambiar el filtro
+- **Ordenamiento por columnas** — click en los encabezados Nombre, Categoría, Estado, Estreno y Recaudación para ordenar ascendente/descendente; segundo click invierte el orden; icono visual indica la columna y dirección activas; el ordenamiento se aplica sobre el resultado ya filtrado
 - **Actualizaciones en tiempo real con SignalR** — `RealtimeService` mantiene una conexión WebSocket con el backend. Cuando cualquier cliente (web o Android) crea, edita o elimina una película, el signal `movies` se actualiza localmente de forma inmediata: inserta al inicio, reemplaza por id o filtra por id, sin recargar toda la lista vía HTTP. La conexión usa `skipNegotiation: true` para conectar directamente por WebSocket, evitando el paso de negotiate que el WebView de Android no maneja correctamente en conexiones cross-origin
 - **Manejo de errores** — banner dismissible que aparece cuando falla cualquier operación HTTP (carga, creación, edición o eliminación); el login muestra el mensaje de error inline en el formulario
 - **CSS artesanal** — sin librerías de estilos externas, dark theme completo con variables CSS
@@ -57,8 +60,11 @@ CRUD de gestión de películas con autenticación JWT, desarrollado como prueba 
   - **Fecha de estreno** — date picker opcional, formateado con `DatePipe`
   - **Recaudación (USD)** — número opcional con validación (debe ser positivo), formateado con `CurrencyPipe`
 - Buscador en tiempo real por nombre, categoría o descripción (busca sobre el total)
+- Filtro por estado combinable con el buscador (Disponible, No Disponible, Próximamente, Archivada)
+- Ordenamiento por columnas: Nombre, Categoría, Estado, Estreno y Recaudación (ascendente/descendente)
 - Paginación de 6 películas por página con navegación inteligente (ventana deslizante + elipsis)
 - Manejo de errores con banner dismissible para operaciones fallidas y mensaje inline en el login
+- **Documentación de API** — Scalar UI disponible en `http://localhost:5000/scalar/v1` (o `http://localhost:5101/scalar/v1` en dev local)
 
 ---
 

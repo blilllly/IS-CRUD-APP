@@ -27,7 +27,14 @@
           (input)="onSearchChange($any($event.target).value)"
         />
       </div>
-      <span class="count">{{ filtered().length }} película(s)</span>
+      <select class="status-filter" [value]="statusFilter()" (change)="onStatusFilterChange($any($event.target).value)">
+        <option value="">Todos los estados</option>
+        <option value="Disponible">Disponible</option>
+        <option value="NoDisponible">No Disponible</option>
+        <option value="Proximamente">Próximamente</option>
+        <option value="Archivada">Archivada</option>
+      </select>
+      <span class="count">{{ sorted().length }} película(s)</span>
     </div>
 
     @if (errorMsg()) {
@@ -45,11 +52,11 @@
         <span class="iconify spin-icon" data-icon="mdi:loading"></span>
         <p>Cargando...</p>
       </div>
-    } @else if (filtered().length === 0) {
+    } @else if (sorted().length === 0) {
       <div class="empty-state">
         <span class="iconify" data-icon="mdi:movie-off-outline"></span>
-        <p>No hay películas{{ search() ? ' con ese criterio' : ''}}</p>
-        @if (!search()) {
+        <p>No hay películas{{ (search() || statusFilter()) ? ' con ese criterio' : ''}}</p>
+        @if (!search() && !statusFilter()) {
           <button class="btn btn-primary" style="margin-top: 12px" (click)="openCreate()">
             <span class="iconify" data-icon="mdi:plus"></span>
             Agregar primera película
@@ -62,12 +69,22 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Nombre</th>
-              <th>Categoría</th>
+              <th class="sortable" [class.active]="sortCol() === 'name'" (click)="toggleSort('name')">
+                Nombre <span class="iconify sort-icon" [attr.data-icon]="sortIcon('name')"></span>
+              </th>
+              <th class="sortable" [class.active]="sortCol() === 'category'" (click)="toggleSort('category')">
+                Categoría <span class="iconify sort-icon" [attr.data-icon]="sortIcon('category')"></span>
+              </th>
               <th>Descripción</th>
-              <th>Estado</th>
-              <th>Estreno</th>
-              <th>Recaudación</th>
+              <th class="sortable" [class.active]="sortCol() === 'status'" (click)="toggleSort('status')">
+                Estado <span class="iconify sort-icon" [attr.data-icon]="sortIcon('status')"></span>
+              </th>
+              <th class="sortable" [class.active]="sortCol() === 'releaseDate'" (click)="toggleSort('releaseDate')">
+                Estreno <span class="iconify sort-icon" [attr.data-icon]="sortIcon('releaseDate')"></span>
+              </th>
+              <th class="sortable" [class.active]="sortCol() === 'revenue'" (click)="toggleSort('revenue')">
+                Recaudación <span class="iconify sort-icon" [attr.data-icon]="sortIcon('revenue')"></span>
+              </th>
               <th>Acciones</th>
             </tr>
           </thead>

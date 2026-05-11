@@ -27,6 +27,9 @@ export class Movies implements OnInit, OnDestroy {
   loading = signal(true);
   errorMsg = signal('');
   search = signal('');
+  statusFilter = signal('');
+  sortCol = signal('');
+  sortDir = signal<'asc' | 'desc'>('asc');
   showModal = signal(false);
   editingMovie = signal<Movie | null>(null);
   currentPage = signal(1);
@@ -34,20 +37,39 @@ export class Movies implements OnInit, OnDestroy {
 
   filtered = computed(() => {
     const q = this.search().toLowerCase();
-    return q
-      ? this.movies().filter(m =>
-          m.name.toLowerCase().includes(q) ||
-          m.category.toLowerCase().includes(q) ||
-          m.description.toLowerCase().includes(q)
-        )
-      : this.movies();
+    const st = this.statusFilter();
+    return this.movies().filter(m => {
+      const matchesSearch = !q ||
+        m.name.toLowerCase().includes(q) ||
+        m.category.toLowerCase().includes(q) ||
+        m.description.toLowerCase().includes(q);
+      const matchesStatus = !st || m.status === st;
+      return matchesSearch && matchesStatus;
+    });
   });
 
-  totalPages = computed(() => Math.ceil(this.filtered().length / this.pageSize) || 1);
+  sorted = computed(() => {
+    const col = this.sortCol();
+    const dir = this.sortDir();
+    if (!col) return this.filtered();
+    return [...this.filtered()].sort((a, b) => {
+      let av = (a as any)[col];
+      let bv = (b as any)[col];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === 'string') av = av.toLowerCase();
+      if (typeof bv === 'string') bv = bv.toLowerCase();
+      const cmp = av > bv ? 1 : av < bv ? -1 : 0;
+      return dir === 'asc' ? cmp : -cmp;
+    });
+  });
+
+  totalPages = computed(() => Math.ceil(this.sorted().length / this.pageSize) || 1);
 
   paginated = computed(() => {
     const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filtered().slice(start, start + this.pageSize);
+    return this.sorted().slice(start, start + this.pageSize);
   });
 
   visiblePages = computed(() => {
@@ -147,6 +169,26 @@ export class Movies implements OnInit, OnDestroy {
   onSearchChange(val: string) {
     this.search.set(val);
     this.currentPage.set(1);
+  }
+
+  onStatusFilterChange(val: string) {
+    this.statusFilter.set(val);
+    this.currentPage.set(1);
+  }
+
+  toggleSort(col: string) {
+    if (this.sortCol() === col) {
+      this.sortDir.update(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortCol.set(col);
+      this.sortDir.set('asc');
+    }
+    this.currentPage.set(1);
+  }
+
+  sortIcon(col: string): string {
+    if (this.sortCol() !== col) return 'mdi:sort';
+    return this.sortDir() === 'asc' ? 'mdi:arrow-up' : 'mdi:arrow-down';
   }
 
   goToPage(n: number) { this.currentPage.set(n); }

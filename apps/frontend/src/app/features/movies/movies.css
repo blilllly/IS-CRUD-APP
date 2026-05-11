@@ -113,6 +113,20 @@
 .search-wrap input:focus { border-color: var(--accent); }
 .search-wrap input::placeholder { color: var(--text-muted); }
 
+.status-filter {
+  padding: 9px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.status-filter:focus { border-color: var(--accent); }
+
 .count {
   font-size: 12px;
   color: var(--text-muted);
@@ -144,6 +158,25 @@ th {
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+th.sortable:hover,
+th.sortable.active { color: var(--text); }
+
+.sort-icon {
+  font-size: 13px;
+  vertical-align: middle;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+
+th.sortable:hover .sort-icon,
+th.sortable.active .sort-icon { opacity: 1; }
 
 tbody tr {
   border-top: 1px solid var(--border);
